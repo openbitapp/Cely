@@ -13,6 +13,7 @@ public struct Cely {
 
     fileprivate init() {}
     public typealias CelyLoginCompletion = (_ username: String, _ password: String) -> Void
+    public typealias CelyLoginTransitionCompletion = (_ status: CelyStatus) -> Void
     /// Properties that are needed inorder for user to stay logged in.
     public static var requiredProperties: [CelyProperty] = []
 
@@ -21,6 +22,10 @@ public struct Cely {
 
     /// A Completion Block that is expecting a `username:String` and a `password:String`
     public static var loginCompletionBlock: CelyLoginCompletion?
+
+    /// A Completion Block that is used for custom transitioning
+    public static var loginTransitionCompletionBlock: CelyLoginTransitionCompletion?
+
 
     /// Sets up Cely within your application
     ///
@@ -39,6 +44,8 @@ public struct Cely {
 
 
         Cely.loginCompletionBlock = options?[.loginCompletionBlock] as? CelyLoginCompletion
+        Cely.loginTransitionCompletionBlock = options?[.loginTransitionCompletionBlock] as? CelyLoginTransitionCompletion
+
         store = options?[.storage] as? CelyStorageProtocol ?? store
 
         if let window = window {

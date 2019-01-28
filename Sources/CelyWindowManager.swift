@@ -14,8 +14,9 @@ public class CelyWindowManager {
     static let manager = CelyWindowManager()
     internal var window: UIWindow!
 
-    public var loginStoryboard: UIStoryboard!
-    public var homeStoryboard: UIStoryboard!
+    public var loginController: UIViewController?
+    public var homeController: UIViewController?
+
     public var loginStyle: CelyStyle!
     public var celyAnimator: CelyAnimator!
 
@@ -28,10 +29,10 @@ public class CelyWindowManager {
         CelyWindowManager.manager.loginStyle = options?[.loginStyle] as? CelyStyle ?? DefaultSyle()
 
         // Set the HomeStoryboard
-        CelyWindowManager.setHomeStoryboard(options?[.homeStoryboard] as? UIStoryboard)
+        CelyWindowManager.setHomeController(options?[.homeController] as? UIViewController)
 
         // Set the LoginStoryboard
-        CelyWindowManager.setLoginStoryboard(options?[.loginStoryboard] as? UIStoryboard)
+        CelyWindowManager.setLoginController(options?[.loginController] as? UIViewController)
 
         // Set the Transition Animator
         CelyWindowManager.manager.celyAnimator = options?[.celyAnimator] as? CelyAnimator ?? DefaultAnimator()
@@ -54,26 +55,32 @@ public class CelyWindowManager {
 
     @objc func showScreenWith(notification: NSNotification) {
         if let status = notification.object as? CelyStatus {
-            if status == .loggedIn {
-                CelyWindowManager.manager.celyAnimator.loginTransition(
-                    to: CelyWindowManager.manager.homeStoryboard.instantiateInitialViewController(),
-                    with: CelyWindowManager.manager.window
-                )
+            if let block = Cely.loginTransitionCompletionBlock {
+                block(status)
             } else {
-                CelyWindowManager.manager.celyAnimator.logoutTransition(
-                    to: CelyWindowManager.manager.loginStoryboard.instantiateInitialViewController(),
-                    with: CelyWindowManager.manager.window
-                )
+                if status == .loggedIn {
+                    CelyWindowManager.manager.celyAnimator.loginTransition(
+                        to: CelyWindowManager.manager.homeController,
+                        with: CelyWindowManager.manager.window
+                    )
+                } else {
+                    CelyWindowManager.manager.celyAnimator.logoutTransition(
+                        to: CelyWindowManager.manager.loginController,
+                        with: CelyWindowManager.manager.window
+                    )
+                }
             }
         }
     }
 
-    static func setHomeStoryboard(_ storyboard: UIStoryboard?) {
-        CelyWindowManager.manager.homeStoryboard = storyboard ?? UIStoryboard(name: "Main", bundle: Bundle.main)
+    static func setHomeController(_ controller: UIViewController?) {
+        let defaultController = UIStoryboard(name: "Main", bundle: Bundle.main).instantiateInitialViewController()
+        CelyWindowManager.manager.homeController = controller ?? defaultController
     }
 
-    static func setLoginStoryboard(_ storyboard: UIStoryboard?) {
-        CelyWindowManager.manager.loginStoryboard = storyboard ?? UIStoryboard(name: "Cely", bundle: Bundle(for: CelyWindowManager.self))
+    static func setLoginController(_ controller: UIViewController?) {
+        let defaultController = UIStoryboard(name: "Cely", bundle: Bundle(for: CelyWindowManager.self)).instantiateInitialViewController()
+        CelyWindowManager.manager.loginController = controller ?? defaultController
     }
 
     deinit {
