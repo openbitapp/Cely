@@ -74,8 +74,10 @@ public class CelyWindowManager {
     }
 
     static func setHomeController(_ controller: UIViewController?) {
-        let defaultController = UIStoryboard(name: "Main", bundle: Bundle.main).instantiateInitialViewController()
-        CelyWindowManager.manager.homeController = controller ?? defaultController
+        guard let controller = controller else {
+            fatalError("You must provide an initial controller")
+        }
+        CelyWindowManager.manager.homeController = controller
     }
 
     static func setLoginController(_ controller: UIViewController?) {
